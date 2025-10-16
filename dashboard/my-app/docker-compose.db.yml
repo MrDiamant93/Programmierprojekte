@@ -1,0 +1,45 @@
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: dashboard-mariadb
+    restart: unless-stopped
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    env_file:
+      - .env.mariadb
+    environment:
+      - TZ=Europe/Berlin
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "3306:3306"           # Host:Container
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -p$$MARIADB_ROOT_PASSWORD || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dashboard
+
+  phpmyadmin:
+    image: phpmyadmin:apache
+    container_name: dashboard-phpmyadmin
+    restart: unless-stopped
+    env_file:
+      - .env.mariadb 
+    environment:
+      - PMA_HOST=mariadb
+      - TZ=Europe/Berlin
+    ports:
+      - "8080:80"    # http://localhost:8080
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    networks:
+      - dashboard
+
+volumes:
+  db-data:
+
+networks:
+  dashboard:

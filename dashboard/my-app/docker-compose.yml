@@ -1,0 +1,67 @@
+services:
+  db:
+    image: mariadb:10.11
+    container_name: dashboard-db
+    restart: unless-stopped
+    env_file:
+      - ./.env.mariadb
+    environment:
+      TZ: Europe/Berlin
+    command: >
+      mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - db-data:/var/lib/mysql
+      # Wenn es diesen Ordner nicht gibt, die folgende Zeile vorübergehend auskommentieren:
+      - ./db/init/sql:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      # Wichtig: $$ vor VAR, damit Compose NICHT interpoliert.
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p$$MARIADB_ROOT_PASSWORD || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    ports:
+      - "3307:3306"
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: dashboard-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_ABSOLUTE_URI: http://localhost:8082/
+      UPLOAD_LIMIT: "64M"
+    ports:
+      - "8082:80"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: dashboard-api
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ./.env.api
+    expose:
+      - "80"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: dashboard-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "8081:80"
+
+volumes:
+  db-data:

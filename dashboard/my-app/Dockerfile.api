@@ -1,0 +1,12 @@
+# API: PHP 8.3 + Apache + PDO MySQL
+FROM php:8.3-apache
+
+RUN docker-php-ext-install pdo pdo_mysql && a2enmod rewrite
+
+# Apache vHost
+COPY apache.conf /etc/apache2/sites-available/000-default.conf
+
+# >>> API-Code INS Image kopieren <<<
+COPY db/init/api/ /var/www/html/api/
+
+EXPOSE 80
