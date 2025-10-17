@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import LoginGear from "./LoginGear.jsx";
+import AuthModal from "./AuthModal.jsx";
 
 /** Status-Definitionen: Key, Label, Kachel-Farbe, Icon */
 const STATUSES = [
@@ -12,6 +13,11 @@ const STATUSES = [
 ];
 
 function InfoBoard() {
+  const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("authUser") || "null"); } catch { return null; }
+  });
+
   const API_BASE = "/api";
 
   // Statt Demo-Daten: leere Arrays
@@ -133,8 +139,9 @@ function InfoBoard() {
         />
       )}
 
-      <Clock />
+      <Clock onTermineClick={() => setShowAuth(true)} />
       <LoginGear />
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} onLoggedIn={(u) => setUser(u)} />
     </div>
   );
 }
@@ -182,7 +189,7 @@ function StatusRing({ center, options, onSelect, onClose, radius = 120 }) {
   );
 }
 
-function Clock({ timeZone = "Europe/Berlin" }) {
+function Clock({ timeZone = "Europe/Berlin", onTermineClick }) {
   const [now, setNow] = useState(new Date());
   useEffect(() => { const id = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(id); }, []);
   const locale = "de-DE";
@@ -190,7 +197,10 @@ function Clock({ timeZone = "Europe/Berlin" }) {
   const date = new Intl.DateTimeFormat(locale, { day: "2-digit", month: "2-digit", year: "2-digit", timeZone }).format(now);
   return (
     <div className="ifa-clock-dock">
-      <div className="ifa-clock">
+      <button className="ds-btn ds-btn--primary ifa-termin-btn" onClick={onTermineClick}>
+          Termine/Urlaub
+        </button>
+        <div className="ifa-clock">
         <div className="ifa-clock__time">{time}</div>
         <div className="ifa-clock__date">{date}</div>
       </div>
