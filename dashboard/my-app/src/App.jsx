@@ -100,6 +100,19 @@ function InfoBoard() {
         </div>
       </div>
 
+      <div className="ifa-section">
+        <div className="ifa-section__title">Teilnehmer</div>
+        <div className="ifa-grid ifa-grid--x4">
+          {teilnehmer.map((p, i) => (
+            <Tile
+              key={p.id}
+              person={p}
+              onClick={(e) => openRing("teilnehmer", i, e)}
+            />
+          ))}
+        </div>
+      </div>
+
 
       <div className="ifa-section">
         <div className="ifa-section__title">Auszubildende</div>
