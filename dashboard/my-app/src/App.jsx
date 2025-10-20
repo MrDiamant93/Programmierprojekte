@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, NavLink, Navigate } from "react-router-do
 import { useEffect, useState } from "react";
 import LoginGear from "./LoginGear.jsx";
 import AuthModal from "./AuthModal.jsx";
+import EntriesModal from "./EntriesModal.jsx";
 
 /** Status-Definitionen: Key, Label, Kachel-Farbe, Icon */
 const STATUSES = [
@@ -14,6 +15,9 @@ const STATUSES = [
 
 function InfoBoard() {
   const [showAuth, setShowAuth] = useState(false);
+  const [showEntries, setShowEntries] = useState(false);
+  const [allEntries, setAllEntries] = useState([]);
+
   const [user, setUser] = useState(() => {
     try { return JSON.parse(localStorage.getItem("authUser") || "null"); } catch { return null; }
   });
@@ -26,7 +30,64 @@ function InfoBoard() {
   const [fachbereichsleiter, setFachbereichsleiter] = useState([]);
 
 
-  // Beim Mount aus der API laden
+  
+  // Alle Einträge laden und zyklisch aktualisieren (für Auto-Status)
+  useEffect(() => {
+    let alive = true;
+    async function loadEntries() {
+      try {
+        const res = await fetch(`${API_BASE}/eintraege.php`, { headers: { Accept: "application/json" } });
+        const data = await res.json();
+        if (!alive) return;
+        setAllEntries(Array.isArray(data.items) ? data.items : []);
+      } catch (e) {
+        console.error("Einträge laden fehlgeschlagen:", e);
+      }
+    }
+    loadEntries();
+    const t = setInterval(loadEntries, 60_000);
+    return () => { alive = false; clearInterval(t); };
+  }, []);
+
+  // Status automatisch setzen: Termin → is-cyan, Urlaub → is-red
+  useEffect(() => {
+    const now = new Date();
+
+    const byPerson = new Map();
+    for (const e of allEntries) {
+      const pid = e.teilnehmer_id;
+      const start = new Date(e.start);
+      const ende = e.ende ? new Date(e.ende) : null;
+      const active = ende ? (now >= start && now <= ende) : (now >= start && now <= new Date(start.getTime() + 60*60*1000)); // 1h Fenster falls kein Ende
+      if (!active) continue;
+
+      let status = null;
+      if (e.typ === 'termin') status = 'travel'; // blau/cyan
+      else if (e.typ === 'urlaub') status = 'absent'; // rot
+
+      if (status) {
+        // Pro Person nur eine Priorität (Termin > Urlaub)
+        const current = byPerson.get(pid);
+        const pri = status === 'travel' ? 2 : 1;
+        const curPri = current?.pri ?? 0;
+        if (pri >= curPri) byPerson.set(pid, { status, pri });
+      }
+    }
+
+    function apply(list, setter) {
+      if (list.length === 0) return;
+      const next = list.map(p => {
+        const hit = byPerson.get(p.id);
+        return hit ? { ...p, status: hit.status } : p;
+        });
+      setter(next);
+    }
+
+    apply(teilnehmer, setTeilnehmer);
+    apply(azubis, setAzubis);
+    apply(fachbereichsleiter, setFachbereichsleiter);
+  }, [allEntries]);
+// Beim Mount aus der API laden
   useEffect(() => {
     async function load() {
       try {
@@ -148,7 +209,8 @@ function InfoBoard() {
 
       <Clock onTermineClick={() => setShowAuth(true)} />
       <LoginGear />
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} onLoggedIn={(u) => setUser(u)} />
+      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} onLoggedIn={(u) => { setShowEntries(true);  setUser(u); }} />
+      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
     </div>
   );
 }
@@ -192,6 +254,7 @@ function StatusRing({ center, options, onSelect, onClose, radius = 120 }) {
           aria-hidden
         />
       </div>
+      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
     </div>
   );
 }
@@ -211,6 +274,7 @@ function Clock({ timeZone = "Europe/Berlin", onTermineClick }) {
         <div className="ifa-clock__time">{time}</div>
         <div className="ifa-clock__date">{date}</div>
       </div>
+      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
     </div>
   );
 }
