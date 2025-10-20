@@ -758,3 +758,16 @@ a:hover { text-decoration: underline; }
   height: 36px;
   padding: 0 10px;
 }
+
+.auth-register {
+  position: fixed; left: 18px; bottom: 18px;
+  height: 52px; padding: 0 16px; border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: inline-flex; align-items: center; gap: 8px;
+  cursor: pointer; z-index: 200; font-weight: 600;
+}
+.auth-register:hover {
+  background: color-mix(in srgb, var(--surface) 90%, white 10%);
+}
