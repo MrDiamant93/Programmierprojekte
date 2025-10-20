@@ -4,17 +4,22 @@ require __DIR__.'/db.php';
 
 $in   = read_json();
 $name = trim($in['name'] ?? '');
-$pass = $in['password'] ?? '';
+$pass = (string)($in['password'] ?? '');
 
 if ($name === '' || $pass === '') {
   respond(400, ['ok'=>false, 'error'=>'Fehlende Felder']);
 }
 
-$stmt = $pdo->prepare('SELECT id, name, massnahme, gruppe, rolle, passwort_hash FROM teilnehmer WHERE name=? ORDER BY id DESC');
+// Falls "name" mehrfach existieren darf, nehmen wir den neuesten Eintrag
+$stmt = $pdo->prepare('SELECT id, name, massnahme, gruppe, rolle, passwort_hash
+                       FROM teilnehmer
+                       WHERE name = ?
+                       ORDER BY id DESC');
 $stmt->execute([$name]);
 $rows = $stmt->fetchAll();
+
 if (!$rows) {
-  respond(401, ['ok'=>false,'error'=>'Anmeldedaten falsch']);
+  respond(401, ['ok'=>false, 'error'=>'Anmeldedaten falsch']);
 }
 
 $matched = null;
@@ -24,8 +29,9 @@ foreach ($rows as $row) {
     break;
   }
 }
+
 if (!$matched) {
-  respond(401, ['ok'=>false,'error'=>'Anmeldedaten falsch']);
+  respond(401, ['ok'=>false, 'error'=>'Anmeldedaten falsch']);
 }
 
 respond(200, ['ok'=>true, 'user'=>[

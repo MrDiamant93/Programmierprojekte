@@ -37,8 +37,15 @@ export default function LoginGear() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, massnahme, rolle, password }),
       })
+      const ct = res.headers.get("content-type") || "";
+      if (!ct.includes("application/json")) {
+        const text = await res.text();
+        throw new Error(`Unerwartete Antwort. Inhaltstyp: ${ct}. Auszug: ${text.slice(0, 160)}…`);
+      }
       const data = await res.json();
-      if (!res.ok || data?.ok === false) throw new Error(data?.error || "Registrierung fehlgeschlagen");
+      if (!res.ok || data?.ok === false) {
+        throw new Error(data?.error || "Registrierung fehlgeschlagen");
+      }
       setMsg("✅ Erfolgreich registriert. Du kannst dich jetzt anmelden.");
       setTimeout(() => setOpen(false), 1200);
     } catch (err) {

@@ -31,8 +31,15 @@ function InfoBoard() {
     async function load() {
       try {
         const res = await fetch(`${API_BASE}/teilnehmer.php`, { headers: { Accept: "application/json" } });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const ct = res.headers.get("content-type") || "";
+        if (!ct.includes("application/json")) {
+          const text = await res.text();
+          throw new Error(`Unerwartete Antwort der Teilnehmer-API. Inhaltstyp: ${ct}. Auszug: ${text.slice(0, 160)}…`);
+        }
         const data = await res.json();
+        if (!res.ok || data?.ok === false) {
+          throw new Error(data?.error || `HTTP ${res.status}`);
+        }
         const items = Array.isArray(data.items) ? data.items : [];
 
         // Frontend-Status (Board-Farben) vorerst lokal: default "present"
@@ -198,9 +205,9 @@ function Clock({ timeZone = "Europe/Berlin", onTermineClick }) {
   return (
     <div className="ifa-clock-dock">
       <button className="ds-btn ds-btn--primary ifa-termin-btn" onClick={onTermineClick}>
-          Termine/Urlaub
-        </button>
-        <div className="ifa-clock">
+        Termine/Urlaub
+      </button>
+      <div className="ifa-clock">
         <div className="ifa-clock__time">{time}</div>
         <div className="ifa-clock__date">{date}</div>
       </div>
