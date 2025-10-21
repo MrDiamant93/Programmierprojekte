@@ -9,8 +9,7 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080', // API-Container auf dem Host
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '/db/init/api'),
-      },
+              },
     },
   },
 })

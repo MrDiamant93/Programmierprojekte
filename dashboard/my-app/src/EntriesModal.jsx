@@ -7,7 +7,14 @@ const API_BASE = "/api";
  * - Öffnet nach erfolgreichem Login automatisch
  * - Liste der eigenen Einträge + Formular zum Hinzufügen
  */
-export default function EntriesModal({ open, onClose, user }) {
+export default function EntriesModal({ open, onClose, user, onLogout }) {
+  const handleLogout = () => {
+    if (confirm('Möchtest du dich wirklich abmelden?')) {
+      try { localStorage.removeItem('authUser'); } catch {}
+      onClose?.();
+      onLogout?.();
+    }
+  };
   const [typ, setTyp] = useState("termin");
   const [startDate, setStartDate] = useState("");
   const [startTime, setStartTime] = useState("");
@@ -66,6 +73,7 @@ export default function EntriesModal({ open, onClose, user }) {
       const res2 = await fetch(`${API_BASE}/eintraege.php?teilnehmer_id=${user.id}`);
       const data2 = await res2.json();
       setItems(Array.isArray(data2.items) ? data2.items : []);
+      window.dispatchEvent(new Event('entries:changed'));
       // reset form
       setTitel("");
       setBeschreibung("");
@@ -82,6 +90,7 @@ export default function EntriesModal({ open, onClose, user }) {
     try {
       await fetch(`${API_BASE}/eintraege.php?id=${id}`, { method: "DELETE" });
       setItems(items.filter(x => x.id !== id));
+      window.dispatchEvent(new Event('entries:changed'));
     } catch (e) {
       console.error(e);
     }
@@ -90,11 +99,10 @@ export default function EntriesModal({ open, onClose, user }) {
   if (!open) return null;
 
   return (
-    <div className="ifa-modal">
-      <div className="auth-modal__backdrop" onClick={onClose} />
-      <div className="auth-modal">
+    <div className="auth-modal__backdrop" onClick={onClose}>
+      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="auth-modal__header">
-          <div className="ifa-modal__title">Einträge verwalten</div>
+          <div className="ifa-modal__title">Einträge verwalten</div><div className="ds-inline-stack" style={{ gap: 8 }}>{user && (<span className="ds-text--muted">Angemeldet als <strong>{user.name}</strong></span>)}{user && (<button className="ds-btn ds-btn--ghost" onClick={handleLogout} title="Abmelden">Abmelden</button>)}</div>
           <button className="ds-btn" onClick={onClose}>Schließen</button>
         </div>
 
@@ -102,6 +110,7 @@ export default function EntriesModal({ open, onClose, user }) {
           <form className="ds-inline-stack" style={{ gap: 12, alignItems: "flex-end", flexWrap: "wrap" }} onSubmit={addEntry}>
             <div className="ds-field">
               <label>Typ</label>
+
               <select value={typ} onChange={e => setTyp(e.target.value)}>
                 <option value="termin">Termin</option>
                 <option value="urlaub">Urlaub</option>

@@ -24,13 +24,6 @@ function InfoBoard() {
 
   const API_BASE = "/api";
 
-  const doLogout = () => {
-    try { localStorage.removeItem('authUser'); } catch {}
-    setUser(null);
-    setShowEntries(false);
-    window.dispatchEvent(new Event('auth:logout'));
-  };
-
   // Statt Demo-Daten: leere Arrays
   const [teilnehmer, setTeilnehmer] = useState([]);
   const [azubis, setAzubis] = useState([]);
@@ -38,61 +31,25 @@ function InfoBoard() {
 
 
   
-    // Einträge laden (auch für SSE-Refresh verwendbar)
-  async function refreshEntries() {
-    try {
-      const res = await fetch(`${API_BASE}/eintraege.php`, { headers: { Accept: 'application/json' } });
-      const data = await res.json();
-      setAllEntries(Array.isArray(data.items) ? data.items : []);
-    } catch (e) {
-      console.error('Einträge laden fehlgeschlagen:', e);
-    }
-  }
-
-  // Alle Einträge laden und zyklisch aktualisieren (Fallback)
+  // Alle Einträge laden und zyklisch aktualisieren (für Auto-Status)
   useEffect(() => {
-    refreshEntries();
-    const t = setInterval(refreshEntries, 60_000);
-    return () => clearInterval(t);
+    let alive = true;
+    async function loadEntries() {
+      try {
+        const res = await fetch(`${API_BASE}/eintraege.php`, { headers: { Accept: "application/json" } });
+        const data = await res.json();
+        if (!alive) return;
+        setAllEntries(Array.isArray(data.items) ? data.items : []);
+      } catch (e) {
+        console.error("Einträge laden fehlgeschlagen:", e);
+      }
+    }
+    loadEntries();
+    const t = setInterval(loadEntries, 60_000);
+    return () => { alive = false; clearInterval(t); };
   }, []);
 
-  // Live-Updates via Server-Sent Events (SSE)
-  useEffect(() => {
-    let es;
-    try {
-      es = new EventSource(`${API_BASE}/events.php`);
-      const onEntriesChanged = () => { refreshEntries(); };
-      es.addEventListener('entries-changed', onEntriesChanged);
-      es.addEventListener('hello', () => {});
-      es.onerror = (e) => { /* silently fall back to polling */ };
-      return () => {
-        try { es.removeEventListener('entries-changed', onEntriesChanged); } catch {}
-        try { es.close(); } catch {}
-      };
-    } catch (e) {
-      console.warn('SSE nicht verfügbar, nutze Polling:', e);
-    }
-  }, []);
-
-  
-  // Exakter Refresh genau zu Start/Ende von Terminen/Urlaub
-  useEffect(() => {
-    if (!allEntries || allEntries.length === 0) return;
-    const now = Date.now();
-    const nextTimes = [];
-    for (const e of allEntries) {
-      const s = new Date(e.start).getTime();
-      const end = e.ende ? new Date(e.ende).getTime() : (s + 60*60*1000);
-      if (s > now) nextTimes.push(s);
-      if (end > now) nextTimes.push(end);
-    }
-    if (nextTimes.length === 0) return;
-    nextTimes.sort((a,b) => a - b);
-    const delay = Math.max(0, Math.min(nextTimes[0] - now, 24*60*60*1000)) + 250;
-    const timer = setTimeout(() => { refreshEntries(); }, delay);
-    return () => clearTimeout(timer);
-  }, [JSON.stringify(allEntries)]);
-// Status automatisch setzen: Termin → is-cyan, Urlaub → is-red
+  // Status automatisch setzen: Termin → is-cyan, Urlaub → is-red
   useEffect(() => {
     const now = new Date();
 

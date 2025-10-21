@@ -53,7 +53,15 @@ if ($method === 'POST') {
                          VALUES (?,?,?,?,?,?)');
   $stmt->execute([$teilnehmer_id, $typ, $start, ($ende !== '' ? $ende : null), $titel, $beschreibung]);
 
-  respond(201, ['ok'=>true, 'id'=>(int)$pdo->lastInsertId()]);
+  $newId = (int)$pdo->lastInsertId();
+  // Publish SSE event
+  try {
+    $stmtEv = $pdo->prepare('INSERT INTO events (type, data) VALUES (?, ?)');
+    $stmtEv->execute(['entries-changed', json_encode(['action' => 'created', 'id' => $newId])]);
+  } catch (Exception $ex) {
+    // ignore pub error
+  }
+  respond(201, ['ok'=>true, 'id'=>$newId]);
 }
 
 if ($method === 'DELETE') {
@@ -62,6 +70,13 @@ if ($method === 'DELETE') {
   if (!$id) respond(400, ['ok'=>false, 'error'=>'id fehlt']);
   $stmt = $pdo->prepare('DELETE FROM eintraege WHERE id = ?');
   $stmt->execute([$id]);
+  // Publish SSE event
+  try {
+    $stmtEv = $pdo->prepare('INSERT INTO events (type, data) VALUES (?, ?)');
+    $stmtEv->execute(['entries-changed', json_encode(['action' => 'deleted', 'id' => $id])]);
+  } catch (Exception $ex) {
+    // ignore pub error
+  }
   respond(200, ['ok'=>true]);
 }
 
