@@ -90,9 +90,8 @@ export default function EntriesModal({ open, onClose, user }) {
   if (!open) return null;
 
   return (
-    <div className="ifa-modal">
-      <div className="auth-modal__backdrop" onClick={onClose} />
-      <div className="auth-modal">
+    <div className="auth-modal__backdrop" onClick={onClose}>
+      <div className="auth-modal" onClick={(e) => e.stopPropagation()}>
         <div className="auth-modal__header">
           <div className="ifa-modal__title">Einträge verwalten</div>
           <button className="ds-btn" onClick={onClose}>Schließen</button>
@@ -102,6 +101,7 @@ export default function EntriesModal({ open, onClose, user }) {
           <form className="ds-inline-stack" style={{ gap: 12, alignItems: "flex-end", flexWrap: "wrap" }} onSubmit={addEntry}>
             <div className="ds-field">
               <label>Typ</label>
+
               <select value={typ} onChange={e => setTyp(e.target.value)}>
                 <option value="termin">Termin</option>
                 <option value="urlaub">Urlaub</option>

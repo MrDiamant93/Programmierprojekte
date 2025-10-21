@@ -207,11 +207,19 @@ function InfoBoard() {
         />
       )}
 
-      <Clock onTermineClick={() => setShowAuth(true)} />
+      <Clock onTermineClick={() => (user ? setShowEntries(true) : setShowAuth(true))} />
       <LoginGear />
-      <AuthModal open={showAuth} onClose={() => setShowAuth(false)} onLoggedIn={(u) => { setShowEntries(true);  setUser(u); }} />
-      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
-    </div>
+      <AuthModal
+        open={showAuth}
+        onClose={() => setShowAuth(false)}
+        onLoggedIn={(u) => { setShowEntries(true); setUser(u); }}
+      />
+      <EntriesModal
+        open={showEntries}
+        onClose={() => setShowEntries(false)}
+        user={user}
+      />
+      </div>
   );
 }
 
@@ -253,9 +261,7 @@ function StatusRing({ center, options, onSelect, onClose, radius = 120 }) {
           style={{ left: center.x, top: center.y }}
           aria-hidden
         />
-      </div>
-      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
-    </div>
+      </div></div>
   );
 }
 
@@ -273,9 +279,7 @@ function Clock({ timeZone = "Europe/Berlin", onTermineClick }) {
       <div className="ifa-clock">
         <div className="ifa-clock__time">{time}</div>
         <div className="ifa-clock__date">{date}</div>
-      </div>
-      <EntriesModal open={showEntries} onClose={()=>setShowEntries(false)} user={user} />
-    </div>
+      </div></div>
   );
 }
 
