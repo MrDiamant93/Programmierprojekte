@@ -1,0 +1,43 @@
+/* Fullscreen responsive base styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+  width: 100%;
+  overscroll-behavior: none;
+}
+* { box-sizing: border-box; }
+:root { 
+  --vh: 1vh;
+  --safe-top: env(safe-area-inset-top);
+  --safe-right: env(safe-area-inset-right);
+  --safe-bottom: env(safe-area-inset-bottom);
+  --safe-left: env(safe-area-inset-left);
+}
+body {
+  padding-top: var(--safe-top);
+  padding-right: var(--safe-right);
+  padding-bottom: var(--safe-bottom);
+  padding-left: var(--safe-left);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  touch-action: manipulation;
+}
+/* Common containers that should fill the viewport */
+#app, #root, #dashboard, main, .dashboard, .app, .container, .fullscreen-section {
+  min-height: calc(var(--vh, 1vh) * 100);
+  width: 100%;
+}
+@supports (height: 100dvh) {
+  #app, #root, #dashboard, main, .dashboard, .app, .container, .fullscreen-section {
+    min-height: 100dvh;
+  }
+}
+/* Optional: make body children fill available space */
+body > #app, body > #root, body > main, body > .dashboard {
+  display: flex;
+  flex-direction: column;
+}

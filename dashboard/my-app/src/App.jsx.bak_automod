@@ -116,29 +116,6 @@ function InfoBoard() {
   }
 
   // Alle Einträge laden und zyklisch aktualisieren (Fallback)
-
-  // Reagiere auf Logout-Events (lokal & aus anderen Tabs) und aktualisiere das Dashboard
-  useEffect(() => {
-    const onAuthLogout = () => {
-      try { setUser(null); } catch {}
-      setShowEntries(false);
-      refreshEntries();
-    };
-    window.addEventListener('auth:logout', onAuthLogout);
-
-    const onStorage = (e) => {
-      if (e && e.key === 'authUser' && !e.newValue) {
-        onAuthLogout();
-      }
-    };
-    window.addEventListener('storage', onStorage);
-
-    return () => {
-      window.removeEventListener('auth:logout', onAuthLogout);
-      window.removeEventListener('storage', onStorage);
-    };
-  }, []);
-
   useEffect(() => {
     refreshEntries();
     const t = setInterval(refreshEntries, POLL_MS);
@@ -191,7 +168,7 @@ function InfoBoard() {
     const nextTimes = [];
     for (const e of allEntries) {
       const s = new Date(e.start).getTime();
-      const end = e.ende ? new Date(e.ende).getTime() : (s + 45*60*1000);
+      const end = e.ende ? new Date(e.ende).getTime() : (s + 60*60*1000);
       if (s > now) nextTimes.push(s);
       if (end > now) nextTimes.push(end);
     }
@@ -210,7 +187,7 @@ function InfoBoard() {
       const pid = e.teilnehmer_id;
       const start = new Date(e.start);
       const ende = e.ende ? new Date(e.ende) : null;
-      const active = ende ? (now >= start && now <= ende) : (now >= start && now <= new Date(start.getTime() + 45*60*1000)); // 45min Fenster falls kein Ende
+      const active = ende ? (now >= start && now <= ende) : (now >= start && now <= new Date(start.getTime() + 60*60*1000)); // 1h Fenster falls kein Ende
       if (!active) continue;
 
       let status = null;
@@ -230,10 +207,8 @@ function InfoBoard() {
       if (list.length === 0) return;
       const next = list.map(p => {
         const hit = byPerson.get(p.id);
-        if (hit) return { ...p, autoStatus: hit.status };
-        // clear previous auto override
-        return { ...p, autoStatus: null };
-      });
+        return hit ? { ...p, status: hit.status } : p;
+        });
       setter(next);
     }
 
@@ -258,7 +233,7 @@ function InfoBoard() {
         const items = Array.isArray(data.items) ? data.items : [];
 
         // Frontend-Status (Board-Farben) vorerst lokal: default "present"
-        const withStatus = items.map(p => ({ ...p, status: "present" }));
+        const withStatus = items.map(p => ({ ...p, status: "absent" }));
 
         setTeilnehmer(withStatus.filter(p => p.rolle === "Teilnehmer"));
         setAzubis(withStatus.filter(p => p.rolle === "Azubi"));
@@ -323,7 +298,7 @@ function InfoBoard() {
   } catch (e) { /* fire & forget */ }
 
   const Tile = ({ person, onClick }) => {
-    const s = getStatus(person.autoStatus || person.status);
+    const s = getStatus(person.status);
     return (
       <button className={`ifa-tile ${s.cls}`} onClick={onClick} aria-label={`${person.name}: ${s.label}`}>
         <span className="ifa-tile__label">{person.name}</span>
@@ -387,7 +362,6 @@ function InfoBoard() {
         open={showEntries}
         onClose={() => setShowEntries(false)}
         user={user}
-        onLogout={doLogout}
       />
       </div>
   );

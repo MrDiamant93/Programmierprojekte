@@ -2,12 +2,35 @@ import { useEffect, useMemo, useState } from "react";
 
 const API_BASE = "/api";
 
+// Kurzes deutsches Datumsformat für bessere Lesbarkeit und weniger Umbruchprobleme
+const formatDateDE = (val) => {
+  try {
+    if (!val) return "-";
+    const d = new Date(val);
+    return d.toLocaleString("de-DE", {
+      day: "2-digit", month: "2-digit", year: "numeric",
+      hour: "2-digit", minute: "2-digit"
+    });
+  } catch {
+    return String(val);
+  }
+};
+
 /**
  * Modal zum Verwalten von Urlaub/Terminen für den eingeloggten Teilnehmer.
  * - Öffnet nach erfolgreichem Login automatisch
  * - Liste der eigenen Einträge + Formular zum Hinzufügen
  */
 export default function EntriesModal({ open, onClose, user, onLogout }) {
+  // Öffnet den nativen Kalender/Uhrzeit-Picker bei Fokus/Klick (Chrome/Edge/Safari)
+  const openNativePicker = (e) => {
+    try {
+      if (e?.currentTarget && typeof e.currentTarget.showPicker === 'function') {
+        e.currentTarget.showPicker();
+      }
+    } catch {}
+  };
+
   const handleLogout = () => {
     if (confirm('Möchtest du dich wirklich abmelden?')) {
       try { localStorage.removeItem('authUser'); } catch {}
@@ -106,12 +129,12 @@ export default function EntriesModal({ open, onClose, user, onLogout }) {
           <button className="ds-btn" onClick={onClose}>Schließen</button>
         </div>
 
-        <div className="ds-stack" style={{ gap: 16 }}>
-          <form className="ds-inline-stack" style={{ gap: 12, alignItems: "flex-end", flexWrap: "wrap" }} onSubmit={addEntry}>
+        <div className="entries-stack">
+          <form className="entries-form" onSubmit={addEntry}>
             <div className="ds-field">
               <label>Typ</label>
 
-              <select value={typ} onChange={e => setTyp(e.target.value)}>
+              <select className="ds-input" value={typ} onChange={e => setTyp(e.target.value)}>
                 <option value="termin">Termin</option>
                 <option value="urlaub">Urlaub</option>
               </select>
@@ -119,30 +142,59 @@ export default function EntriesModal({ open, onClose, user, onLogout }) {
 
             <div className="ds-field">
               <label>Start (Datum)</label>
-              <input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
-            </div>
+              <input
+                className="ds-input"
+                type="date"
+                value={startDate}
+                onChange={e => setStartDate(e.target.value)}
+                required
+                onFocus={openNativePicker}
+                onClick={openNativePicker}
+              />
+</div>
             <div className="ds-field">
               <label>Start (Uhrzeit optional)</label>
-              <input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} />
-            </div>
+              <input
+                className="ds-input"
+                type="time"
+                value={startTime}
+                onChange={e => setStartTime(e.target.value)}
+                onFocus={openNativePicker}
+                onClick={openNativePicker}
+              />
+</div>
 
             <div className="ds-field">
               <label>Ende (Datum, optional)</label>
-              <input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-            </div>
+              <input
+                className="ds-input"
+                type="date"
+                value={endDate}
+                onChange={e => setEndDate(e.target.value)}
+                onFocus={openNativePicker}
+                onClick={openNativePicker}
+              />
+</div>
             <div className="ds-field">
               <label>Ende (Uhrzeit optional)</label>
-              <input type="time" value={endTime} onChange={e => setEndTime(e.target.value)} />
-            </div>
+              <input
+                className="ds-input"
+                type="time"
+                value={endTime}
+                onChange={e => setEndTime(e.target.value)}
+                onFocus={openNativePicker}
+                onClick={openNativePicker}
+              />
+</div>
 
-            <div className="ds-field" style={{ minWidth: 200 }}>
+            <div className="ds-field wide">
               <label>Titel (optional)</label>
-              <input type="text" value={titel} onChange={e => setTitel(e.target.value)} placeholder="z. B. Arzttermin" />
+              <input className="ds-input" type="text" value={titel} onChange={e => setTitel(e.target.value)} placeholder="z. B. Arzttermin" />
             </div>
 
-            <div className="ds-field" style={{ minWidth: 260 }}>
+            <div className="ds-field wide">
               <label>Beschreibung (optional)</label>
-              <input type="text" value={beschreibung} onChange={e => setBeschreibung(e.target.value)} placeholder="Notizen…" />
+              <input className="ds-input" type="text" value={beschreibung} onChange={e => setBeschreibung(e.target.value)} placeholder="Notizen…" />
             </div>
 
             <button className="ds-btn" type="submit" disabled={loading}>{loading ? "Speichert…" : "Hinzufügen"}</button>
@@ -167,10 +219,10 @@ export default function EntriesModal({ open, onClose, user, onLogout }) {
                 {items.map(it => (
                   <tr key={it.id}>
                     <td>{it.typ}</td>
-                    <td>{new Date(it.start).toLocaleString()}</td>
-                    <td>{it.ende ? new Date(it.ende).toLocaleString() : "-"}</td>
-                    <td>{it.titel || "-"}</td>
-                    <td><button className="ds-btn" onClick={() => deleteEntry(it.id)}>Löschen</button></td>
+                    <td>{formatDateDE(it.start)}</td>
+                    <td>{it.ende ? formatDateDE(it.ende) : "-"}</td>
+                    <td style={{wordBreak:'break-word'}}>{it.titel || "-"}</td>
+                    <td style={{whiteSpace:"nowrap"}}><button className="ds-btn" style={{height:32,padding:"0 10px"}} onClick={() => deleteEntry(it.id)}>Löschen</button></td>
                   </tr>
                 ))}
               </tbody>

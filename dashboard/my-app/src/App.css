@@ -264,7 +264,7 @@ html, body {
 
 /* Status-Dot */
 .ds-status-dot {
-  width: .6rem; height: .6rem; border-radius: 999px; display: inline-block; margin-right: .4rem;
+  width: 0.75rem; height: 0.75rem; border-radius: 999px; display: inline-block; margin-right: .4rem;
   background: var(--text-muted);
 }
 .ds-status--success { background: var(--success); }
@@ -419,10 +419,10 @@ a:hover { text-decoration: underline; }
   font-weight: 800;
   letter-spacing: 0.02em;
   font-size: 14px;
-  color: #e8ecff;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.00)),
-    linear-gradient(180deg, #6cc0ff, #3a9ce3 70%);
+   linear-gradient(180deg, rgba(255,255,255,0.18), rgba(255,255,255,0.00)),
+   linear-gradient(180deg, var(--brand), var(--brand-600) 70%);
+  color: #ffffff;
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.6),
     0 6px 12px rgba(0,0,0,0.35);
@@ -494,7 +494,7 @@ a:hover { text-decoration: underline; }
 
 .ifa-tile__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ifa-tile__icon {
-  width: 44px; height: 44px;
+  width: 56px; height: 56px;
   border-radius: 50%;
   display: inline-grid;
   place-items: center;
@@ -503,35 +503,35 @@ a:hover { text-decoration: underline; }
   box-shadow: inset 0 -2px 0 rgba(0,0,0,.12);
 }
 /* Allow emoji or SVG icons inside */
-.ifa-tile__icon > svg { width: 24px; height: 24px; display: block; }
+.ifa-tile__icon > svg { width: 32px; height: 32px; display: block; }
 .ifa-tile__icon::before { content: ""; display: block; }
 
 /* ====== VARIANTS ========================================== */
 .is-green {
   background:
     linear-gradient(180deg, var(--ifa-green-1), var(--ifa-green-2) 85%);
-  border: 2px solid var(--ifa-green-stroke);
+  border: 3px solid var(--ifa-green-stroke);
 }
 .is-green .ifa-tile__icon { color: #0c8f24; }
 
 .is-cyan {
   background:
     linear-gradient(180deg, var(--ifa-cyan-1), var(--ifa-cyan-2) 85%);
-  border: 2px solid var(--ifa-cyan-stroke);
+  border: 3px solid var(--ifa-cyan-stroke);
 }
 .is-cyan .ifa-tile__icon { color: #0e7aa0; }
 
 .is-red {
   background:
     linear-gradient(180deg, var(--ifa-red-1), var(--ifa-red-2) 85%);
-  border: 2px solid var(--ifa-red-stroke);
+  border: 3px solid var(--ifa-red-stroke);
 }
 .is-red .ifa-tile__icon { color: #9d1516; }
 
 .is-amber {
   background:
     linear-gradient(180deg, var(--ifa-amber-1), var(--ifa-amber-2) 85%);
-  border: 2px solid var(--ifa-amber-stroke);
+  border: 3px solid var(--ifa-amber-stroke);
 }
 .is-amber .ifa-tile__icon { color: #8e6b06; }
 
@@ -760,14 +760,641 @@ a:hover { text-decoration: underline; }
 }
 
 .auth-register {
-  position: fixed; left: 18px; bottom: 18px;
-  height: 52px; padding: 0 16px; border-radius: 9999px;
+  position: fixed;
+  /* spiegelbildlich zur .ifa-clock-dock rechts unten */
+  left: calc(var(--ifa-board-padding) + 6px);
+  bottom: calc(var(--ifa-board-padding) + 6px);
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 9999px;
   border: 1px solid var(--border);
   background: var(--surface);
   box-shadow: var(--shadow);
   display: inline-flex; align-items: center; gap: 8px;
   cursor: pointer; z-index: 200; font-weight: 600;
 }
+/* iOS-Safe-Area berücksichtigen */
+@supports (padding: max(0px)) {
+  .auth-register {
+    left: max(env(safe-area-inset-left), calc(var(--ifa-board-padding) + 6px));
+    bottom: max(env(safe-area-inset-bottom), calc(var(--ifa-board-padding) + 6px));
+  }
+}
+
 .auth-register:hover {
   background: color-mix(in srgb, var(--surface) 90%, white 10%);
 }
+
+/* ==========================================================
+   Dashboard "Neon Grid" skin – based on preview_it_multimedia_concept_v2.png
+   Drop-in override: keep existing tokens & components. Put this
+   block at the end of App.css to take precedence.
+   ========================================================== */
+
+/* Colors & sizing for the background grid */
+:root {
+  --ng-grid: 96px;           /* distance between grid lines */
+  --ng-grid-fine: 24px;      /* diagonal pattern spacing */
+  --ng-line-soft: rgba(255,255,255,.06);
+  --ng-line-fine: rgba(255,255,255,.03);
+  --ng-bg-top:  #1a1440;     /* deep violet/navy */
+  --ng-bg-mid:  #0c2b3a;     /* midnight blue/teal */
+  --ng-bg-btm:  #015d4d;     /* teal/green */
+}
+
+/* Full page backdrop with big radial "blobs" and a dark gradient */
+html, body {
+  background-image:
+    /* coarse grid (H + V) */
+    repeating-linear-gradient(0deg,
+      var(--ng-line-soft) 0, var(--ng-line-soft) 1px,
+      transparent 1px, transparent var(--ng-grid)),
+    repeating-linear-gradient(90deg,
+      var(--ng-line-soft) 0, var(--ng-line-soft) 1px,
+      transparent 1px, transparent var(--ng-grid)),
+
+    /* fine diagonal hatch */
+    repeating-linear-gradient(45deg,
+      var(--ng-line-fine) 0, var(--ng-line-fine) 1px,
+      transparent 1px, transparent var(--ng-grid-fine)),
+
+    /* big blurred circles (magenta TL, cyan TR, yellow-green bottom) */
+    radial-gradient(800px 520px at 18% 12%, rgba(236, 72, 153, .22), transparent 60%),
+    radial-gradient(880px 620px at 84% 18%, rgba(56, 189, 248, .25), transparent 60%),
+    radial-gradient(900px 520px at 50% 86%, rgba(190, 242, 100, .22), transparent 62%),
+    radial-gradient(700px 560px at 12% 86%, rgba(99, 102, 241, .18), transparent 62%),
+
+    /* vertical background gradient */
+    linear-gradient(180deg, var(--ng-bg-top) 0%, var(--ng-bg-mid) 55%, var(--ng-bg-btm) 100%);
+  background-attachment: fixed, fixed, fixed, fixed, fixed, fixed, fixed, fixed;
+  background-size: auto, auto, auto, auto, auto, auto, auto, auto;
+  color: var(--text);
+}
+
+/* Remove the heavy panel look – let the neon grid shine through */
+.ifa-board {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  padding: max(var(--ifa-board-padding), 24px);
+}
+
+/* Optional: subtle dark separators like in the preview */
+.ds-main::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(0deg, rgba(0,0,0,.35), rgba(0,0,0,.35)) 0 72px / 100% 12px no-repeat; /* top bar line */
+  mix-blend-mode: normal;
+  z-index: 0;
+}
+
+/* "Glass" UI chips / bars (for buttons, toolbars, small panels) */
+.glass,
+.ds-topbar,
+.ds-card,
+.ifa-badge {
+  background: rgba(255,255,255,.08) !important;
+  border: 1px solid rgba(255,255,255,.22) !important;
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25),
+              0 10px 30px rgba(0,0,0,.35);
+}
+
+/* Make badges look like small glowing pills */
+.ifa-badge {
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
+
+/* Colored pills (legend-style) */
+.badge-yellow { background: linear-gradient(180deg, #fde047, #facc15) !important; border-color: rgba(255,255,255,.55) !important; }
+.badge-red    { background: linear-gradient(180deg, #f87171, #ef4444) !important; border-color: rgba(255,255,255,.55) !important; }
+.badge-green  { background: linear-gradient(180deg, #4ade80, #22c55e) !important; border-color: rgba(255,255,255,.55) !important; }
+.badge-blue   { background: linear-gradient(180deg, #60a5fa, #3b82f6) !important; border-color: rgba(255,255,255,.55) !important; }
+
+/* Keep tiles readable on the brighter background */
+.ifa-tile {
+  box-shadow: 0 10px 24px rgba(0,0,0,.35);
+}
+
+/* Top-right compact glass chips if you use them */
+.chips {
+  display: flex; gap: 14px; align-items: center;
+}
+.chips .chip {
+  padding: 8px 14px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.5);
+  background: rgba(255,255,255,.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+
+/* ==========================================================
+   Neon Grid – v2 additions
+   Buttons, Clock, Group Headings, Registered Users accents
+   ========================================================== */
+
+/* ---- Shared tokens ---- */
+:root {
+  --ng-accent: #22d3ee;           /* cyan */
+  --ng-accent-2: #a78bfa;         /* violet */
+  --ng-danger: #ef4444;
+  --ng-success: #22c55e;
+  --ng-warning: #f59e0b;
+  --ng-btn-radius: 14px;
+  --ng-btn-h: 44px;
+}
+
+/* ---- Buttons ---- */
+button,
+input[type="button"],
+input[type="submit"],
+.btn,
+.ifa-btn,
+.ds-btn {
+  position: relative;
+  display: inline-flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  height: var(--ng-btn-h);
+  padding: 0 18px;
+  border-radius: var(--ng-btn-radius);
+  border: 1px solid rgba(255,255,255,.35);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06)) !important;
+  color: #e6faff;
+  font-weight: 700;
+  letter-spacing: .2px;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 8px 20px rgba(0,0,0,.35);
+  backdrop-filter: blur(8px) saturate(120%);
+  -webkit-backdrop-filter: blur(8px) saturate(120%);
+  cursor: pointer;
+  transition: transform .08s ease, box-shadow .2s ease, background .2s ease;
+}
+
+button:hover,
+input[type="button"]:hover,
+input[type="submit"]:hover,
+.btn:hover,
+.ifa-btn:hover,
+.ds-btn:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.5),
+    0 12px 28px rgba(0,0,0,.45);
+  transform: translateY(-1px);
+}
+
+button:active,
+input[type="button"]:active,
+input[type="submit"]:active,
+.btn:active,
+.ifa-btn:active,
+.ds-btn:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.3),
+    0 6px 16px rgba(0,0,0,.35);
+}
+
+/* Button focus ring */
+button:focus-visible,
+input[type="button"]:focus-visible,
+input[type="submit"]:focus-visible,
+.btn:focus-visible,
+.ifa-btn:focus-visible,
+.ds-btn:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(255,255,255,.6),
+    0 0 0 6px rgba(34,211,238,.25),
+    inset 0 1px 0 rgba(255,255,255,.35),
+    0 10px 24px rgba(0,0,0,.4);
+}
+
+/* Accented button variants */
+.btn--primary,
+.ifa-btn--primary,
+.ds-btn--primary,
+button.primary {
+  background:
+    linear-gradient(180deg, #5eead4, #22d3ee) !important;
+  border-color: rgba(255,255,255,.6) !important;
+  color: #0b1720;
+}
+
+.btn--danger,
+.ifa-btn--danger,
+.ds-btn--danger,
+button.danger {
+  background: linear-gradient(180deg, #f87171, #ef4444) !important;
+  border-color: rgba(255,255,255,.6) !important;
+}
+
+.btn--success,
+.ifa-btn--success,
+.ds-btn--success,
+button.success {
+  background: linear-gradient(180deg, #34d399, #22c55e) !important;
+  border-color: rgba(255,255,255,.6) !important;
+}
+
+.btn--warning,
+.ifa-btn--warning,
+.ds-btn--warning,
+button.warning {
+  background: linear-gradient(180deg, #fbbf24, #f59e0b) !important;
+  border-color: rgba(255,255,255,.7) !important;
+  color: #1e1300;
+}
+
+.btn--ghost,
+.ifa-btn--ghost,
+.ds-btn--ghost,
+button.ghost {
+  background: rgba(255,255,255,.08) !important;
+}
+
+/* Subtle animated edge highlight */
+button::after,
+.btn::after,
+.ifa-btn::after,
+.ds-btn::after {
+  content: "";
+  position: absolute; inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(167,139,250,.65), rgba(34,211,238,.65));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  opacity: .45;
+  pointer-events: none;
+}
+
+/* ---- Clock widget ---- */
+.clock, #clock, .ifa-clock, .ds-clock {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(28px, 3.6vw, 56px);
+  line-height: 1;
+  padding: 12px 18px;
+  border-radius: 16px;
+  color: #eaffff;
+  background: rgba(255,255,255,.10);
+  border: 1px solid rgba(255,255,255,.28);
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 14px 36px rgba(0,0,0,.45);
+  backdrop-filter: blur(10px) saturate(125%);
+  -webkit-backdrop-filter: blur(10px) saturate(125%);
+}
+
+.clock::before, #clock::before, .ifa-clock::before, .ds-clock::before {
+  /* small gradient bar at the top like UI chips */
+  content: "";
+  position: absolute;
+  left: 10px; right: 10px; top: 6px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #f472b6, #22d3ee);
+  opacity: .9;
+}
+
+.clock .colon, #clock .colon, .ifa-clock .colon, .ds-clock .colon {
+  animation: ng-blink 1.2s infinite steps(2, end);
+  display: inline-block;
+}
+
+@keyframes ng-blink { 0%, 49% { opacity: 1 } 50%, 100% { opacity: .25 } }
+
+.clock .label, #clock .label, .ifa-clock .label, .ds-clock .label {
+  font-size: .45em;
+  opacity: .8;
+}
+
+/* ---- Group headings ---- */
+.section-title, .group-title, .group-header h2, h2.group-title, .ifa-section-title {
+  position: relative;
+  margin: 10px 0 16px 0;
+  font-size: clamp(18px, 1.8vw, 26px);
+  font-weight: 800;
+  letter-spacing: .5px;
+  text-transform: uppercase;
+  color: #eaf2ff;
+  text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  background: linear-gradient(90deg, #a78bfa, #22d3ee 55%, #34d399);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.section-title::after, .group-title::after, .group-header h2::after, h2.group-title::after, .ifa-section-title::after {
+  content: "";
+  position: absolute;
+  left: 0; bottom: -6px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(167,139,250,.9), rgba(34,211,238,.9));
+  opacity: .9;
+  border-radius: 2px;
+}
+
+/* Optional compact header bar */
+.group-header, .section-header {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  padding: 10px 14px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 24px rgba(0,0,0,.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* ---- Registered users nuances ---- */
+/* Works with multiple possible DOMs: cards, list rows, etc. */
+.user-card.registered,
+.user-row.registered,
+.user.registered,
+[data-status="registered"],
+[data-state="registered"],
+[data-user="registered"] {
+  position: relative;
+  background: linear-gradient(180deg, rgba(34,197,94,.12), rgba(34,197,94,.05));
+  border: 1px solid rgba(34,197,94,.45);
+  box-shadow:
+    0 12px 28px rgba(16,185,129,.25),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* glowing status dot */
+.user-card.registered::before,
+.user-row.registered::before,
+.user.registered::before,
+[data-status="registered"]::before,
+[data-state="registered"]::before,
+[data-user="registered"]::before {
+  content: "";
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #bbf7d0, #22c55e 60%, transparent 62%);
+  box-shadow: 0 0 18px #22c55e;
+}
+
+/* subtle animated border shimmer */
+.user-card.registered::after,
+.user-row.registered::after,
+.user.registered::after,
+[data-status="registered"]::after,
+[data-state="registered"]::after,
+[data-user="registered"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, rgba(34,197,94,.0), rgba(34,197,94,.6), rgba(34,197,94,.0));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: ng-sheen 4.5s linear infinite;
+  opacity: .6;
+  pointer-events: none;
+}
+
+@keyframes ng-sheen {
+  0% { background-position: 0% 50% }
+  100% { background-position: 200% 50% }
+}
+
+/* Chips for user meta */
+.user-chip,
+.user-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.45);
+  background: rgba(255,255,255,.10);
+  font-weight: 700;
+  text-shadow: 0 1px 0 rgba(0,0,0,.35);
+}
+
+/* Colorful chips */
+.user-chip--blue   { background: linear-gradient(180deg, #93c5fd, #3b82f6) !important; border-color: rgba(255,255,255,.65) !important; }
+.user-chip--violet { background: linear-gradient(180deg, #c4b5fd, #8b5cf6) !important; border-color: rgba(255,255,255,.65) !important; }
+.user-chip--teal   { background: linear-gradient(180deg, #5eead4, #14b8a6) !important; border-color: rgba(255,255,255,.65) !important; }
+
+/* Avatars with accent ring when registered */
+.avatar,
+.user-avatar { position: relative; border-radius: 50%; }
+.registered .avatar,
+.registered .user-avatar,
+[data-status="registered"] .avatar,
+[data-status="registered"] .user-avatar {
+  box-shadow: 0 0 0 3px rgba(255,255,255,.85), 0 0 0 8px rgba(34,197,94,.5), 0 8px 24px rgba(0,0,0,.35);
+}
+
+/* Utility helpers */
+.text-gradient { 
+  background: linear-gradient(90deg, #f472b6, #22d3ee 60%, #34d399); 
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+}
+.glow-soft { text-shadow: 0 0 12px rgba(34,211,238,.55), 0 1px 0 rgba(0,0,0,.45); }
+
+.ifa-board {
+  position: relative;
+}
+
+.auth-register {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+}
+
+
+:root {
+  --reg-btn-gap: 20px;        /* Abstand zur Kante */
+  --reg-btn-z: 1100;          /* Ebenenreihenfolge über Cards/Widgets */
+  --reg-btn-radius: 10px;
+  --reg-btn-min-size: 44px;   /* bessere Touch-Ziele auf Mobile */
+}
+
+.register-btn,
+#registrierButton,
+#registerButton {
+  position: fixed;
+  left: var(--reg-btn-gap);
+  bottom: calc(var(--reg-btn-gap) + env(safe-area-inset-bottom, 0px));
+  z-index: var(--reg-btn-z);
+  border-radius: var(--reg-btn-radius);
+  box-shadow: 0 6px 18px rgba(0,0,0,.15);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+@media (max-width: 480px) {
+  .register-btn,
+  #registrierButton,
+  #registerButton {
+    left: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    min-width: var(--reg-btn-min-size);
+    min-height: var(--reg-btn-min-size);
+  }
+}
+
+@supports (position: sticky) {
+  .dashboard-inner .register-btn,
+  .dashboard-inner #registrierButton,
+  .dashboard-inner #registerButton {
+    position: sticky;
+    bottom: var(--reg-btn-gap);
+    left: 0;                 /* Sticky kann nicht via 'left' fixiert werden – wir nutzen stattdessen margin */
+    margin-left: var(--reg-btn-gap);
+    z-index: var(--reg-btn-z);
+  }
+
+  .dashboard-inner {
+    position: relative;
+  }
+}
+
+/* -- Dock: Registrieren unten links IM Board (scoped & gewinnt) -- */
+.ifa-board { position: relative; }
+
+.ifa-board > .auth-register,
+.ifa-board .auth-register {
+  position: absolute !important;
+  left: calc(var(--ifa-board-padding) + 6px) !important;
+  bottom: calc(var(--ifa-board-padding) + 6px) !important;
+  z-index: 200;
+}
+
+/* === Centered SVG status icons === */
+.ifa-tile__icon, .ifa-ring__icon {
+  display: grid;
+  place-items: center;
+}
+.ifa-tile__icon svg { width: 24px; height: 24px; display: block; }
+.ifa-ring__icon  svg { width: 28px; height: 28px; display: block; }
+
+/* Farbsteuerung über currentColor → pro Statusklasse */
+.is-green  .ifa-tile__icon,
+.ifa-ring__btn.is-green  { color: var(--ifa-green-stroke); }
+.is-cyan   .ifa-tile__icon,
+.ifa-ring__btn.is-cyan   { color: var(--ifa-cyan-stroke); }
+.is-red    .ifa-tile__icon,
+.ifa-ring__btn.is-red    { color: var(--ifa-red-stroke); }
+.is-amber  .ifa-tile__icon,
+.ifa-ring__btn.is-amber  { color: var(--ifa-amber-stroke); }
+
+/* Ring-Buttons visuell etwas klarer (weißer Kern, zarte Outline) */
+.ifa-ring__btn {
+  background: radial-gradient(circle, rgba(255,255,255,0.98), rgba(255,255,255,0.90));
+  border-color: rgba(0,0,0,.20);
+}
+
+.ifa-tile__icon > span { font-size: 32px; line-height: 1; display: inline-block; }
+
+
+/* ==== Entries (Urlaub/Termine) form – improved layout & responsiveness ==== */
+.entries-form {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.entries-form .ds-field {
+  display: grid;
+  gap: 6px;
+  grid-column: span 6;
+  min-width: 0;
+}
+.entries-form .ds-field.wide {
+  grid-column: span 12;
+}
+@media (max-width: 720px) {
+  .entries-form .ds-field { grid-column: span 12; }
+}
+.ds-field label { font-size: .9rem; color: var(--text); }
+
+/* Make inputs/selects consistent and prevent overflow */
+.ds-field .ds-input,
+.ds-field select.ds-input,
+.ds-field input.ds-input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Date/time inputs: ensure they fit inside small screens */
+input[type="date"].ds-input,
+input[type="time"].ds-input {
+  width: 100%;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+/* Table wrapper: allow horizontal scroll if content (dates) are too wide */
+.ds-table__wrap {
+  width: 100%;
+  overflow: auto;
+}
+/* Keep cells compact to reduce wrapping, but allow scrolling instead of overflow off-screen */
+.ds-table th, .ds-table td { white-space: nowrap; }
+
+
+/* Wrapper spacing for entries modal */
+.entries-stack { display: grid; gap: var(--space-6); }
+
+
+/* === CLOCK LAYOUT FIX (appended) ========================================= */
+/* Stack button above, clock below, keep to the right and inside safe area */
+.ifa-clock-dock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  right: calc(var(--ifa-board-padding) + var(--safe-right) + 10px);
+  bottom: calc(var(--ifa-board-padding) + var(--safe-bottom) + 10px);
+}
+
+/* Make the clock a rounded rectangle and stack time above date */
+.ifa-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  min-width: 140px;
+  padding: 10px 12px 12px;
+  border-radius: 16px; /* override circle */
+}
+
+.ifa-clock__time {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.ifa-clock__date {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: visible;
+}
+/* ======================================================================== */
